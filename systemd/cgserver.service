@@ -1,0 +1,15 @@
+
+[Unit]
+Description=ChatGlobal Server
+
+[Service]
+Type=forking
+PIDFile=/run/cgserver.pid
+ExecStart=/usr/local/bin/cgserver \
+        --conf_path /etc/cgserver \
+        --log_path /var/log/cgserver \
+        --pid_file /run/cgserver.pid \
+        --daemon
+
+[Install]
+WantedBy=multi-user.target

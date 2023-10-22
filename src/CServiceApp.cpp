@@ -433,7 +433,7 @@ bool CServiceApp::OnInit()
 int CServiceApp::OnExit()
 {
 	Exiting();
-	int exit_code = wxApp::OnExit();
+	int exit_code = wxAppConsole::OnExit();
 	Yield();
 #ifndef __linux__
 	if(RunAsService)

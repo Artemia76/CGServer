@@ -22,6 +22,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 option(BUILD_32 "Check this to enable to choose 32bit build" ON)
 
+#Aw SDK Selector 
+set(AW_SDK 41 CACHE STRING "Choose version of aw sdk")
+
+set_property(CACHE AW_SDK PROPERTY STRINGS 41 93)
+
+if (AW_SDK EQUAL 41)
+    set(LIB_AW_SDK "aw_sdk")
+elseif (AW_SDK EQUAL 93)
+    set(LIB_AW_SDK "aw_sdk.51")
+endif ()
 
 if (UNIX)
     set(CONFIG_DIR "/etc/cgserver")
@@ -61,6 +71,7 @@ else()
 endif()
 
 #Search project dependencies
+set(wxWidgets_CONFIG_OPTIONS --toolkit=base)
 find_package(wxWidgets REQUIRED base)
 if(NOT wxWidgets_FOUND)
     message( FATAL_ERROR "wxWidgets librairies was not found. This lib is mandatory for cgserver" )
@@ -77,7 +88,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     LINK_PUBLIC
         ${wxWidgets_LIBRARIES}
-        aw_sdk
+        ${LIB_AW_SDK}
 )
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config/cgserver.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

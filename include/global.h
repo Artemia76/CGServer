@@ -12,4 +12,6 @@ static const wxString CGVersion = _T("ChatGlobal linux server V3.5.1");
 
 static const wxString CGCopyright = _T("Neophile (c)2003-2023");
 
+extern wxString conf_path_name;
+
 #endif

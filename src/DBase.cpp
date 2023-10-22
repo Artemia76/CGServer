@@ -16,6 +16,7 @@
 // *****************************************************************************
 
 #include "DBase.h"
+#include "global.h"
 
 CDBase* CDBase::PtCDBase = 0;
 
@@ -38,8 +39,8 @@ CDBase::CDBase()
 {
 	int r,v,b;
 	wxString DBFileName,s;
-	DBFileName = ::wxGetCwd();
-	DBFileName.Append(_T("/DBase"));
+	DBFileName = conf_path_name + wxFILE_SEP_PATH;
+	DBFileName.Append(_T("DBase"));
 	if (!wxDirExists(DBFileName)) wxMkdir(DBFileName);
 	DBFileName.Append(_T("/Users.ini"));
 	pConfig = new wxFileConfig(_T(""), _T(""), DBFileName);

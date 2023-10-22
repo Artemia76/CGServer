@@ -15,6 +15,7 @@
 // *****************************************************************************
 
 #include "DBColor.h"
+#include "global.h"
 
 CDBColor* CDBColor::PtCDBColor = 0;
 
@@ -37,8 +38,8 @@ CDBColor::CDBColor()
 {
 	int i,r,v,b;
 	wxString DBCFileName,s;
-	DBCFileName = ::wxGetCwd();
-	DBCFileName.Append(_T("/DBase"));
+	DBCFileName = conf_path_name + wxFILE_SEP_PATH;
+	DBCFileName.Append(_T("DBase"));
 	if (!wxDirExists(DBCFileName)) wxMkdir(DBCFileName);
 	DBCFileName.Append(_T("/Colors.ini"));
 	pConfig = new wxFileConfig(_T(""), _T(""), DBCFileName);

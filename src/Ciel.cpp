@@ -17,14 +17,13 @@
 #include "Ciel.h"
 #include <aw.h>
 #include <math.h>
-
 #include "global.h"
 
 CCiel::CCiel (int id)
 {
 	wxString s,t;
-	s = wxGetCwd();
-	s.Append(_T("/DBase"));
+	s = conf_path_name + wxFILE_SEP_PATH;
+	s.Append(_T("DBase"));
 	if (!wxDirExists(s)) wxMkdir(s);
 	t.Printf(_T("/Ciel%02d.ini"), id);
 	pConfig = new wxFileConfig(_T(""), _T(""), s + t);

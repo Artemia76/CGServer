@@ -14,8 +14,6 @@
 #include <iostream>
 #include <vector>
 
-#include "CSingleTon.h"
-
 /*
  * Class CLog - used as a handle for a log file.
  * @path: path to the log file.
@@ -75,21 +73,20 @@ private:
 	void		WriteConf ();
 };
 
-class CLogManager : public CSingleTon<CLogManager>
-{
-private:
-	friend class CSingleTon <CLogManager>;
-				CLogManager();
-				~CLogManager ();
-	typedef std::vector<CLog*> VLog;
-	VLog			ALog; // Tableau d'objet de log;
+typedef std::vector<CLog*> VLog;
 
+class CLogManager
+{
 public:
-	CLog* Add (const wxString& pName, bool pLogToFile = true, bool pLogToConsole=true);
-	bool Remove (CLog* pLog);
-	bool Remove (const wxString& pName);
-	CLog* Get (const wxString& pName);
-	void RemoveAll ();
-	void FlushAll();
+			CLogManager();
+			~CLogManager ();
+	VLog	Logs; // Tableau d'objet de log;
+
+	CLog*	Add (const wxString& pName, bool pLogToFile = true, bool pLogToConsole=true);
+	bool	Remove (CLog* pLog);
+	bool	Remove (const wxString& pName);
+	CLog*	Get (const wxString& pName);
+	void	RemoveAll ();
+	void	FlushAll();
 };
 #endif

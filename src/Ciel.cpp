@@ -15,7 +15,7 @@
 // *****************************************************************************
 
 #include "Ciel.h"
-#include <aw.h>
+#include <Aw.h>
 #include <math.h>
 #include "global.h"
 

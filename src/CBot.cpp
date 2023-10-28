@@ -17,7 +17,7 @@
 
 #include "CBot.h"
 
-#include <aw.h>
+#include <Aw.h>
 
 // Event du Bot
 wxBEGIN_EVENT_TABLE(CBot, wxEvtHandler)
@@ -549,52 +549,44 @@ int CBot::GetUserCitizen (const wxString& Name)
 
 //------------------------------------------------------------------------------
 
-bool CBot::IsUserEminent (int Sess)
+bool CBot::IsUserEminent (const CUser& User)
 {
-	int ID=GetUserID(Sess);
-	if (ID<0) return false;
 	wxString Cito,Priv;
-	Cito << _T('[') << Users[ID].Citizen << _T(']');
-	Priv << _T('[') << Users[ID].Privilege << _T(']');
+	Cito << _T('[') << User.Citizen << _T(']');
+	Priv << _T('[') << User.Privilege << _T(']');
 	if (EminentList.Contains(Cito) || (EminentList.Contains(Priv))) return true;
 	return false;
 }
 
 //------------------------------------------------------------------------------
 
-bool CBot::IsUserPublicSpeaker (int Sess)
+bool CBot::IsUserPublicSpeaker (const CUser& User)
 {
-	int ID=GetUserID(Sess);
-	if (ID<0) return false;
 	wxString Cito,Priv;
-	Cito << _T('[') << Users[ID].Citizen << _T(']');
-	Priv << _T('[') << Users[ID].Privilege << _T(']');
+	Cito << _T('[') << User.Citizen  << _T(']');
+	Priv << _T('[') << User.Privilege << _T(']');
 	if (PSList.Contains(Cito) || (PSList.Contains(Priv))) return true;
 	return false;
 }
 
 //------------------------------------------------------------------------------
 
-bool CBot::IsUserModerator (int Sess)
+bool CBot::IsUserModerator (const CUser& User)
 {
-	int ID=GetUserID(Sess);
-	if (ID<0) return false;
 	wxString Cito,Priv;
-	Cito << _T('[') << Users[ID].Citizen << _T(']');
-	Priv << _T('[') << Users[ID].Privilege << _T(']');
+	Cito << _T('[') << User.Citizen << _T(']');
+	Priv << _T('[') << User.Privilege << _T(']');
 	if (ModoList.Contains(Cito) || (ModoList.Contains(Priv))) return true;
 	return false;
 }
 
 //------------------------------------------------------------------------------
 
-bool CBot::IsUserOwner (int Sess)
+bool CBot::IsUserOwner (const CUser& User)
 {
-	int ID=GetUserID(Sess);
-	if (ID<0) return false;
 	wxString Cito,Priv;
-	Cito << _T('[') << Users[ID].Citizen << _T(']');
-	Priv << _T('[') << Users[ID].Privilege << _T(']');
+	Cito << _T('[') << User.Citizen << _T(']');
+	Priv << _T('[') << User.Privilege << _T(']');
 	if (OwnerList.Contains(Cito) || (OwnerList.Contains(Priv))) return true;
 	return false;
 }
@@ -1337,7 +1329,7 @@ void CBot::ConsoleMessage(const wxString& Message, int Sess, int R, int V, int B
 		aw_bool_set(AW_CONSOLE_BOLD, Bold);
 		aw_bool_set(AW_CONSOLE_ITALICS, Ita);
 #if AW_BUILD>77
-		aw_string_set(AW_CONSOLE_MESSAGE, Message);
+		aw_string_set(AW_CONSOLE_MESSAGE, _T("CBot Console Message : ") + Message);
 #else
 		aw_string_set(AW_CONSOLE_MESSAGE, wxString(Message).mb_str());
 #endif

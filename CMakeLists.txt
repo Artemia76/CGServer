@@ -1,4 +1,4 @@
-# UniServer CMakeLists.txt 
+# CGServer CMakeLists.txt 
 
 # Minimum CMake Version compatibility
 cmake_minimum_required(VERSION 3.18)
@@ -53,6 +53,7 @@ set(SOURCES
     src/CUser.cpp
     src/DBase.cpp
     src/DBColor.cpp
+    src/CIRCGateway.cpp
 )
 
 # Add executable with the above sources
@@ -72,7 +73,7 @@ endif()
 
 #Search project dependencies
 set(wxWidgets_CONFIG_OPTIONS --toolkit=base)
-find_package(wxWidgets REQUIRED base)
+find_package(wxWidgets REQUIRED base net)
 if(NOT wxWidgets_FOUND)
     message( FATAL_ERROR "wxWidgets librairies was not found. This lib is mandatory for cgserver" )
 endif()
@@ -91,18 +92,11 @@ target_link_libraries(${PROJECT_NAME}
         ${LIB_AW_SDK}
 )
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config/cgserver.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/logs)
-
 if (UNIX)
     install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-    file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/config/*")
-    foreach(file ${files})
-        get_filename_component(filename "${file}" NAME)
-        if (NOT EXISTS "${CONFIG_DIR}/${filename}")
-            install(FILES "${file}" DESTINATION "${CONFIG_DIR}")
-        endif()
-    endforeach()
+    if (NOT EXISTS "/etc/cgserver/cgserver.ini")
+            install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/config/cgserver.ini" DESTINATION "/etc/cgserver" )
+    endif()
 
     if (NOT EXISTS "/etc/systemd/system/cgserver.service")
         install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/systemd/cgserver.service" DESTINATION "/etc/systemd/system" )

@@ -273,7 +273,7 @@ CLog* CLogManager::Add (const wxString& pName, bool pLogToFile, bool pLogToConso
 {
 	CLog* Log= new CLog(pName,pLogToFile,pLogToConsole );
 	if (Log->Error) return NULL;
-	ALog.push_back(Log);
+	Logs.push_back(Log);
 	return Log;
 }
 
@@ -282,9 +282,9 @@ CLog* CLogManager::Add (const wxString& pName, bool pLogToFile, bool pLogToConso
  */
 void CLogManager::FlushAll()
 {
-	for (VLog::iterator it = ALog.begin(); it != ALog.end(); ++it)
+	for (auto Log : Logs)
 	{
-		(*it)->Flush();
+		Log->Flush();
 	}
 }
 
@@ -295,9 +295,9 @@ void CLogManager::FlushAll()
  */
 CLog* CLogManager::Get (const wxString& pName)
 {
-	for (VLog::iterator it = ALog.begin(); it != ALog.end(); ++it)
+	for (auto Log : Logs)
 	{
-		if ((*it)->Name==pName) return *it;
+		if (Log->Name==pName) return Log;
 	}
 	return NULL;
 }
@@ -308,12 +308,12 @@ CLog* CLogManager::Get (const wxString& pName)
  */
 bool CLogManager::Remove (CLog* pLog)
 {
-	for (VLog::iterator it = ALog.begin(); it != ALog.end(); ++it)
+	for (VLog::iterator it = Logs.begin(); it != Logs.end(); ++it)
 	{
 		if ((*it)==pLog)
 		{
 			delete (*it);
-			ALog.erase(it);
+			Logs.erase(it);
 			return false;
 		}
 	}
@@ -337,9 +337,9 @@ bool CLogManager::Remove (const wxString& pName)
  */
 void CLogManager::RemoveAll ()
 {
-	for (VLog::iterator it = ALog.begin(); it != ALog.end(); ++it)
+	for (auto Log : Logs)
 	{
-		delete (*it);
+		delete (Log);
 	}
-	ALog.clear();
+	Logs.clear();
 }

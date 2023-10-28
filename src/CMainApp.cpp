@@ -5,6 +5,11 @@
 
 IMPLEMENT_APP_NO_MAIN(CMainApp);
 
+CMainApp::CMainApp() : CtrlAw(Diffusion), IRCGateway(Diffusion)
+{
+
+}
+
 bool CMainApp::Init()
 {
 	int rc;
@@ -63,20 +68,19 @@ bool CMainApp::Init()
 	pConfig->Write(_T("NbBot"),NbBot);
 	pConfig->Write(_T("Log"),LogFlag);
 	pConfig->Flush ();
-	CLogManager* Logger = CLogManager::Create();
-	CLog* Log = Logger->Add(_T("LogGen"), LogFlag, !IsService());
+	CLog* Log = LogManager.Add(_T("LogGen"), LogFlag, !IsService());
 	if(Log == nullptr)
 	{
 		return false;
 	}
 	wxLog::SetActiveTarget(Log);
 	wxLogMessage(AppName + _(" Started"));
-	CtrlAw=CCtrlAw::Create();
-	if ((rc=CtrlAw->Init(true, NbBot)))
+	if ((rc=CtrlAw.Init(true, NbBot)))
 	{
 		wxLogMessage(_("Fail to start Aw Controller. Exiting..."));
 		return false;
 	}
+    IRCGateway.Init(true);
 	return true;
 }
 
@@ -85,11 +89,9 @@ bool CMainApp::Init()
 void CMainApp::Exiting()
 {
 	wxLogMessage(_("Exiting ") + AppName + _("... Bye Bye!"));
-	CtrlAw->Init(false);
-	CCtrlAw::Kill();
-	CLogManager* Logger = CLogManager::Create();
-	Logger->FlushAll();
+    IRCGateway.Init(false);
+	CtrlAw.Init(false);
+	LogManager.FlushAll();
 	wxLog::SetActiveTarget(NULL);
-	Logger->RemoveAll();
-	CLogManager::Kill();
+	LogManager.RemoveAll();
 }

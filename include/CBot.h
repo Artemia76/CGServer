@@ -25,7 +25,7 @@
 
 #include <wx/config.h>
 
-#include <aw.h>
+#include <Aw.h>
 
 #ifndef COMMON_DLL
 	#ifdef DLL_EXPORTS
@@ -104,10 +104,10 @@ virtual void                Charge		        ();
 		int					GetUserID			(const wxString& Name);
         int                 GetUserAvatar       (int Sess);
         int                 GetUserAvatar       (const wxString& Name);
-        bool				IsUserEminent		(int Sess);
-		bool				IsUserPublicSpeaker (int Sess);
-		bool				IsUserModerator		(int Sess);
-		bool				IsUserOwner			(int Sess);
+        bool				IsUserEminent		(const CUser& User);
+		bool				IsUserPublicSpeaker (const CUser& User);
+		bool				IsUserModerator		(const CUser& User);
+		bool				IsUserOwner			(const CUser& User);
 		void				ConsoleMessage		(const wxString& Message, int Sess=0, int R = 0, int V = 0,
 												int B=0, bool Bold=false, bool Ita=false);
 // AW Method proxy for async callback and event safe

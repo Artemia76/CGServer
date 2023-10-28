@@ -17,7 +17,7 @@
 
 #include "CBotCG.h"
 
-#include <aw.h>
+#include <Aw.h>
 #include <math.h>
 #include <arpa/inet.h>
 #include "global.h"
@@ -33,7 +33,7 @@ unsigned int CBotCG::EjectTime=24;
 //------------------------------------------------------------------------------
 // Contructeur
 
-CBotCG::CBotCG () : CBot()
+CBotCG::CBotCG (CDiffusion& pDiffusion) : CBot() , Diffusion(pDiffusion)
 {
     DBase = CDBase::Create ();
     DBColor = CDBColor::Create();
@@ -45,10 +45,7 @@ CBotCG::CBotCG () : CBot()
     Kloug=false;
     EnaStyle=false;
     BlockCG=false;
-    CitoModo=1;
-    CitoEmin=1;
     SessionReq=0;
-    Diffusion=CDiffusion::Create ();
 }
 
 CBotCG::~CBotCG ()
@@ -68,7 +65,6 @@ void CBotCG::Charge ()
     S.Printf(_T("/Bot%02d"),ID);
 	pConfig->Read( S + _T("/EnaCoulPerso"), &EnaCoulPerso, true);
 	pConfig->Read( S + _T("/EnaStyle"), &EnaStyle, false);
-	pConfig->Read( S + _T("/EnaTouristTChat"), &EnaTouristTChat, true);
 	pConfig->Read( S + _T("/ChatBride"), &ChatBride, false);
 	pConfig->Read( S + _T("/ChatDistance"), &ChatDistance, 250);
 	pConfig->Read( S + _T("/ExtBride"), &ExtBride, false);
@@ -76,8 +72,6 @@ void CBotCG::Charge ()
 	pConfig->Read( S + _T("/ExtCoordX"), &ExtCoordX, 0);
 	pConfig->Read( S + _T("/ExtCoordZ"), &ExtCoordZ, 0);
 	pConfig->Read( S + _T("/CGON"), &CGON, false);
-	pConfig->Read( S + _T("/CitoModo"), &CitoModo, 1);
-	pConfig->Read( S + _T("/CitoEmin"), &CitoEmin, 1);
 // Chargement des paramètres personnalisés
 	pConfig->Read( S + _T("/EnaMessAc"), &EnaMessAc, true);
 	pConfig->Read( S + _T("/TxtMessAc"), &TxtMessAc, _("Welcome on the ChatGlobal %n."));
@@ -122,7 +116,6 @@ void CBotCG::Sauve ()
 	S.Printf(_T("/Bot%02d"),ID);
 	pConfig->Write( S + _T("/EnaCoulPerso"), EnaCoulPerso);
 	pConfig->Write( S + _T("/EnaStyle"), EnaStyle);
-	pConfig->Write( S + _T("/EnaTouristTChat"), EnaTouristTChat);
 	pConfig->Write( S + _T("/ChatBride"), ChatBride);
 	pConfig->Write( S + _T("/ChatDistance"), ChatDistance);
 	pConfig->Write( S + _T("/ExtBride"), ExtBride);
@@ -130,8 +123,6 @@ void CBotCG::Sauve ()
 	pConfig->Write( S + _T("/ExtCoordX"), ExtCoordX);
 	pConfig->Write( S + _T("/ExtCoordZ"), ExtCoordZ);
 	pConfig->Write( S + _T("/CGON"), CGON);
-	pConfig->Write( S + _T("/CitoModo"), CitoModo);
-	pConfig->Write( S + _T("/CitoEmin"), CitoEmin);
 // Sauvegarde des paramètres personnalisés
 	pConfig->Write( S + _T("/EnaMessAc"), EnaMessAc);
 	pConfig->Write( S + _T("/TxtMessAc"), TxtMessAc);
@@ -168,7 +159,7 @@ wxString CBotCG::Analyse(wxString Name, int Session, int Citoyen, wxString Messa
 	CColour Couleur(0,0,0);
 	wxString Reponse, Original, UCase, Titre, Quali, Tampon;
 	wxArrayString Liste;
-	int Dest=0, id, R=255, V=50, B=50, pos=-1, rc, Session2, Dist;
+	int Dest=0, id, R=255, V=50, B=50, pos=-1, rc, Dist;
 	bool Bold=false,Ita=false,Ti=false,Qu=false,Me=false,PSpeaker=false,MessBot=false,Eminent=false;
 	bool cmd_ok=true, Modo=false, Dieu=false;
 	bool SessGlob1,SessGlob2;
@@ -177,23 +168,16 @@ wxString CBotCG::Analyse(wxString Name, int Session, int Citoyen, wxString Messa
 	if (!Mess_Ext)
 	{
 		Dest=Session;
+		Cito << Citoyen;
+		Cito = _T('[') + Cito + _T(']');
+		Priv << Privilege;
+		Priv = _T('[') + Priv + _T(']');
 		if (Type==AW_CHAT_BROADCAST) PSpeaker=true;
-		if ((Citoyen==CitoModo) || (Privilege==CitoModo)) Modo=true;
-		if ((Citoyen==CitoEmin) || (Privilege==CitoEmin))
-		{
-			Eminent=true;
-			Modo=true;
-		}
-		if (Message.Contains (_T(":)")))
-		{
-			aw_int_set (AW_AVATAR_GESTURE, 1);
-			aw_int_set (AW_AVATAR_TYPE, GetUserAvatar(Session));
-			aw_avatar_set (Session);
-		}
+		if (ModoList.Contains(Priv) || ModoList.Contains(Cito)) Modo=true;
+		if (EminentList.Contains(Priv) || EminentList.Contains(Cito)) Eminent=true;
 	}
 	id=DBase->Identifie (Name, Citoyen);
 	if ((DBase->GetMuteMode (id)) && (!Modo) && (!Eminent)) return _T("");
-	if ((Citoyen==0) && (!EnaTouristTChat)) return _T("");
 	// Recherche anti retour a la ligne
 	while ((rc=Message.Find(_T('\n')))!=wxNOT_FOUND)
 	{
@@ -243,17 +227,7 @@ wxString CBotCG::Analyse(wxString Name, int Session, int Citoyen, wxString Messa
 			Reponse.Replace (_T("%c"), NKloug, true);
 			R=ClrAnnKlo.Red();
 			V=ClrAnnKlo.Green();
-			B=ClrAnnKlo.Blue();
-			Dest=0;
-			MessBot=true;
-			break;
-		}
-		if (Message.StartsWith(_T("/"))) cmd_ok=false;
-		if (Message.StartsWith(_T("//"),&Tampon))
-		{
-			Message=Tampon;
-			cmd_ok=true;
-			Dest=0;
+
 			break;
 		}
 		if ((UCase==_T("/AIDE") || UCase== _T("/HELP")) && (!Mess_Ext))
@@ -297,8 +271,6 @@ wxString CBotCG::Analyse(wxString Name, int Session, int Citoyen, wxString Messa
 				ConMess(Dest,_("/listmute\t:List muted users"),R,V,B,true);
 				ConMess(Dest,_("/list\t:Give number of user on the world"),R,V,B,true);
 				ConMess(Dest,_("/ejectip x.x.x.x=y\t:Eject ip x.x.x.x for y hours, if =y is not specified, the ban time will be for 24 hours by default"),R,V,B,true);
-				ConMess(Dest,_("/touristeon\t:Enable tourists tchat"),R,V,B,true);
-				ConMess(Dest,_("/touristeoff\t:Disable tourists tchat"),R,V,B,true);
 				ConMess(Dest,_("/modon\t:Enable moderator mode"),R,V,B,true);
 				ConMess(Dest,_("/modoff\t:Disable moderator mode"),R,V,B,true);
 			}
@@ -310,8 +282,6 @@ wxString CBotCG::Analyse(wxString Name, int Session, int Citoyen, wxString Messa
 				ConMess(Dest,_("/cgoff\t:Disconnect the T'Chat streaming from xelagot server"),R,V,B,true);
 				ConMess(Dest,_("/stat\t:Give the DB statistics"),R,V,B,true);
 			}
-			ConMess(Dest,_("For more information , please read the online documentation :"),51,153,51,true);
-			ConMess(Dest,_T("http://www.abyssia.fr/chatglobal.php"),R,V,B,true);
 			Reponse = _("");
 			break;
 		}
@@ -740,8 +710,7 @@ if (UCase==_T("/BOLDON"))
 				cmd_ok=true;
 				Dieu=true;
 				Dest=0;
-				Diffusion->Post (Vide,GetInstance(),Message,Vide,8);
-				wxLogMessage(_("God mode used by :") +Name);
+				Diffusion.Post (Vide,GetInstance(),Message,Vide,8);
 				break;
 			}
 		}
@@ -852,24 +821,6 @@ if (UCase==_T("/BOLDON"))
 				else Reponse= _("Not a valid IP Address");
 				break;
 			}
-			if (UCase==_T("/TOURISTEON"))
-			{
-				MessBot=true;
-				cmd_ok=true;
-				EnaTouristTChat=true;
-				Reponse = _("Tourist tchat has been enabled");
-				Sauve ();
-				break;
-			}
-			if (UCase==_T("/TOURISTEOFF"))
-			{
-				MessBot=true;
-				cmd_ok=true;
-				EnaTouristTChat=false;
-				Reponse = _("Tourist tchat has been disabled");
-				Sauve ();
-				break;
-			}
 			if (UCase==_T("/MODON"))
 			{
 				MessBot=true;
@@ -963,28 +914,28 @@ if (UCase==_T("/BOLDON"))
 		if ((!Dest) && (!Mess_Ext) && (!BlockCG))
 		{
 			SessGlob1=DBase->GetGlobMode(id);
-			for (VUsers::iterator it= Users.begin(); it< Users.end(); ++it)
+			for (auto User : Users)
 			{
-				Dist = Distance (Session2,Session, false);
-				SessGlob2=DBase->GetGlobMode(DBase->Search(GetUserName(it->Session)));
+				Dist = Distance (User.Session,Session, false);
+				SessGlob2=DBase->GetGlobMode(DBase->Search(GetUserName(User.Session)));
 				if (ChatBride || (!SessGlob1) || (!SessGlob2))
 				{
-					if (Dist < ChatDistance) ConMess(it->Session,Reponse,R,V,B,Bold,Ita);
+					if (Dist < ChatDistance) ConMess(User.Session,Reponse,R,V,B,Bold,Ita);
 				}
-				else ConMess(it->Session,Reponse,R,V,B,Bold,Ita);
+				else ConMess(User.Session,Reponse,R,V,B,Bold,Ita);
 			}
 		}
 		else if ((!Dest) && Mess_Ext && (!BlockCG))
 		{
-			for (VUsers::iterator it= Users.begin(); it< Users.end(); ++it)
+			for (auto User : Users)
 			{
-				SessGlob1=DBase->GetGlobMode(DBase->Search(GetUserName(it->Session)));
-				Dist = Distance (it->Session,0, true);
+				SessGlob1=DBase->GetGlobMode(DBase->Search(GetUserName(User.Session)));
+				Dist = Distance (User.Session,0, true);
 				if (ExtBride || (!SessGlob1))
 				{
-					if	(Dist < ExtDistance) if (Dist < ChatDistance) ConMess(it->Session,Reponse,R,V,B,Bold,Ita);
+					if	(Dist < ExtDistance) if (Dist < ChatDistance) ConMess(User.Session,Reponse,R,V,B,Bold,Ita);
 				}
-				else ConMess(it->Session,Reponse,R,V,B,Bold,Ita);
+				else ConMess(User.Session,Reponse,R,V,B,Bold,Ita);
 			}
 		}
 		else if (Dest && (!Mess_Ext)) ConMess(Dest,Reponse,R,V,B,Bold,Ita);
@@ -1000,7 +951,7 @@ int CBotCG::Mess_Bot (wxString Name, int code, wxString Client, int Session)
 	wxString Message=Name;
 	switch (code)
 	{
-		case 1	: //Message d'anonnce d'arriv�e
+		case 1	: //Message d'anonnce d'arrivée
 			if (!EnaAnnArr) return 0;
 			Message=TxtAnnArr;
 			Message.Replace (_T("%n"),Name, true);
@@ -1008,7 +959,7 @@ int CBotCG::Mess_Bot (wxString Name, int code, wxString Client, int Session)
 			V=ClrAnnArr.Green();
 			B=ClrAnnArr.Blue();
 			break;
-		case 2	: //Message d'annonce de d�part
+		case 2	: //Message d'annonce de départ
 			if (!EnaAnnDep) return 0;
 			Message=TxtAnnDep;
 			Message.Replace (_T("%n"),Name, true);
@@ -1060,9 +1011,9 @@ int CBotCG::Mess_Bot (wxString Name, int code, wxString Client, int Session)
 	{
 		if (ExtBride && (code > 2) && (code < 7))
 		{
-			for (VUsers::iterator it= Users.begin(); it< Users.end(); ++it)
+			for (auto User : Users)
 			{
-				Dist = Distance (it->Session,0, true);
+				Dist = Distance (User.Session,0, true);
 				if	(Dist < ExtDistance)
 				{
 					ConMess(Session,Message,R,V,B,true,false);
@@ -1194,9 +1145,9 @@ void CBotCG::TellList (int Session)
 	else
 	{
 		ConMess(Session,_("Users list :"),51,153,51,true);
-		for (VUsers::iterator it= Users.begin(); it< Users.end(); ++it)
+		for (auto User : Users)
 		{
-			ConMess(Session,it->Name,51,153,51,true);
+			ConMess(Session,User.Name,51,153,51,true);
 		}
 		ConMess(Session,_("End of list"),51,153,51,true);
 	}

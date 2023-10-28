@@ -8,7 +8,7 @@
 // *   Le 03/11/2007                                                           *
 // *   CopyRight (c)Neophile 2005-2007                                         *
 // *                                                                           *
-// *   Modifié le 07/09/2007                                                   *
+// *   Modifiï¿½ le 07/09/2007                                                   *
 // *                                                                           *
 // *****************************************************************************
 // *                                                                           *
@@ -20,39 +20,35 @@
 #define CDIFFUSION_H
 
 #ifndef  WX_PRECOMP
-	#include <wx/wx.h>
+    #include <wx/wx.h>
 #endif
 #include <wx/wxprec.h>
-#include <wx/dynarray.h>
+#include <vector>
 
 class CPost
 {
-	public:
-						CPost (wxString& Mess, void* Inst, wxString& Name, wxString& Clien, int Typ=0);
-		wxString		Message;
-		void*			Instance;
-		wxString		Nom,Client;
-		int				Type;
+    public:
+                            CPost (wxString& Mess, void* Inst, wxString& Name, wxString& Clien, int Typ=0);
+        wxString			Message;
+        void*				Instance;
+        wxString			Nom,Client;
+        int					Type;
 };
 
-WX_DECLARE_OBJARRAY(CPost, APost);
+typedef std::vector<CPost>  VPosts;
 
 class CDiffusion
 {
     private:
-                        CDiffusion ();//Constructeur Privé
-                        ~CDiffusion ();//Destructeur Privé
-static  CDiffusion*     PtCDiffusion;// Pointeur statique du SingleTon
-		APost			Stack;//Pile de récèption des messages
-		void*			Client;
-		size_t			Compteur;
+        VPosts              Stack;//Pile de rÃ©cÃ¨ption des messages
+        void*				Client;
+        size_t				Compteur;
     public:
-static  CDiffusion*     Create (); //Createur d'instance SingleTon
-static  void            Kill (); //Destructeur d'instance SingleTon
-
-        void			Post (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int Typ=0); // Poste un message
-        bool			Get (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int& Typ); // Récupere les message de diffusion (renvoi true si dernier message)
-        void			Clear ();
+                            CDiffusion ();
+                            ~CDiffusion ();
+        void				Post (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int Typ=0); // Poste un message
+        bool				Get (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int& Typ); // RÃ©cupere les message de diffusion (renvoi true si dernier message)
+        void				Clear ();
 };
 
 #endif

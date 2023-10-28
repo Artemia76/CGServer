@@ -19,7 +19,7 @@
 #include <wx/datetime.h>
 #include <wx/tokenzr.h>
 
-#include <aw.h>
+#include <Aw.h>
 
 #include "global.h"
 
@@ -27,52 +27,27 @@ wxBEGIN_EVENT_TABLE(CCtrlAw, wxEvtHandler)
 	EVT_TIMER (HEARTBEAT, CCtrlAw::On_HeartBeat)
 wxEND_EVENT_TABLE()
 
-//------------------------------------------------------------------------------
-// Pointeur Static
-
 CCtrlAw* CCtrlAw::PtCCtrlAw = nullptr;
 
 //------------------------------------------------------------------------------
-// Createur
-CCtrlAw* CCtrlAw::Create()
-{
-	if (!PtCCtrlAw)
-	{
-		PtCCtrlAw = new CCtrlAw();
-	}
-	return PtCCtrlAw;
-}
+// Constructeur
 
-//------------------------------------------------------------------------------
-// Tueur
-
-void CCtrlAw::Kill()
-{
-	if (PtCCtrlAw != nullptr) delete PtCCtrlAw;
-	PtCCtrlAw=nullptr;
-}
-
-//------------------------------------------------------------------------------
-// Constructeur Privé
-
-CCtrlAw::CCtrlAw ()
+CCtrlAw::CCtrlAw (CDiffusion &pDiffusion) : Diffusion(pDiffusion)
 {
 	AwInit=false;
     ServerMode = true;
     pConfig=wxConfigBase::Get();
 	AHeure=0;
-	Diffuse = CDiffusion::Create();
 	Heart = new wxTimer (this, HEARTBEAT);
 	ShdEject=false;
+    PtCCtrlAw = this;
 }
 
 //------------------------------------------------------------------------------
-// Destructeur Privé
+// Destructeur
 
 CCtrlAw::~CCtrlAw()
 {
-	Diffuse=0;
-	CDiffusion::Kill ();
 }
 
 void CCtrlAw::SetMode (CTRLAW_MODE Mode)
@@ -109,39 +84,40 @@ int CCtrlAw::Init (bool flag, size_t NbBot)
 		aw_callback_set (AW_CALLBACK_ENTER, CCtrlAw::On_Enter);
 		aw_callback_set (AW_CALLBACK_ADDRESS, CCtrlAw::On_Address);
         aw_callback_set (AW_CALLBACK_CITIZEN_ATTRIBUTES, CCtrlAw::On_Citizen_Attributes);
+
 		AwInit=true;
 		for (size_t i=0 ; i<NbBot ; i++)
 		{
-			ABots.push_back(new CBotCG());
-			ABots.back()->Charge();
-			if (ABots.back()->CGConAuto)
+			Bots.push_back(new CBotCG(Diffusion));
+			Bots.back()->Charge();
+			if (Bots.back()->CGConAuto)
 			{
-				ABots.back()->Global=true;
-				if (ABots.back()->CGRecoEna)
+				Bots.back()->Global=true;
+				if (Bots.back()->CGRecoEna)
 				{
-					ABots.back()->CGRecoCnt=0;
-					ABots.back()->CGRetente=ABots.back()->CGRecoDelay;
-					ABots.back()->ModeReco=true;
+					Bots.back()->CGRecoCnt=0;
+					Bots.back()->CGRetente=Bots.back()->CGRecoDelay;
+					Bots.back()->ModeReco=true;
 				}
-				ABots.back()->Connect();
+				Bots.back()->Connect();
 			}
 		}
-		Heart->Start(100);
+		Heart->Start(Base_Temps);
 		return 0;
 	}
 	else if((!flag) && (AwInit))
 	{
 		Heart->Stop();
-		for (VBots::iterator it = ABots.begin() ; it != ABots.end(); ++it)
+		for (auto Bot : Bots)
 		{
-			if ( (*it)->SetInstance())
+			if ( Bot->SetInstance())
 			{
-				(*it)->Connection(false);
+				Bot->Connection(false);
 			}
-            (*it)->Sauve();
-			delete (*it);
+            Bot->Sauve();
+			delete (Bot);
 		}
-		ABots.clear();
+		Bots.clear();
         AwInit=false;
 		aw_term();
 		return 0;
@@ -173,7 +149,6 @@ void CCtrlAw::On_Avatar_Add(void)
 	wxString Name,Message=_T("");
 	CBotCG* Robot=PtCCtrlAw->GetBotInst(aw_instance());
 	CUser User;
-	void* Instance;
 	User.Session=aw_int(AW_AVATAR_SESSION);
 	User.Name=
 	#if AW_BUILD > 77
@@ -192,7 +167,7 @@ void CCtrlAw::On_Avatar_Add(void)
 	Robot->NKling=User.Name;
 	int id,modo;
 	id=Robot->DBase->Identifie(User.Name, User.Citizen);
-	if (((User.Citizen==Robot->CitoModo) || (User.Citizen==Robot->CitoEmin) || (User.Privilege==Robot->CitoModo) || (User.Privilege==Robot->CitoEmin)) && Robot->DBase->GetModo(id))
+	if (Robot->IsUserModerator(User) || Robot->IsUserEminent(User))
 	{
 		Robot->TellList (User.Session);
 	}
@@ -202,7 +177,7 @@ void CCtrlAw::On_Avatar_Add(void)
 	aw_address (User.Session);
 	if (Robot->CGON)
 	{
-		PtCCtrlAw->Diffuse->Post(Message, Instance, User.Name, Robot->Nom, 5);
+		PtCCtrlAw->Diffusion.Post(Message, aw_instance(), User.Name, Robot->Nom, 5);
 	}
 }
 
@@ -257,7 +232,7 @@ void CCtrlAw::On_Avatar_Delete(void)
 	Robot->Mess_Bot(User.Name, 2);
 	if (Robot->CGON)
 	{
-		PtCCtrlAw->Diffuse->Post(Message,aw_instance(), User.Name, Robot->Nom, 6);
+		PtCCtrlAw->Diffusion.Post(Message,aw_instance(), User.Name, Robot->Nom, 6);
 	}
 }
 
@@ -312,9 +287,9 @@ void CCtrlAw::On_Chat(void)
 		if (Robot->ExtBride)
 		{
 			int Distance=Robot->Distance(Session, 0, true);
-			if (Distance < Robot->ExtDistance) PtCCtrlAw->Diffuse->Post (Message, aw_instance(), Nom, Robot->Nom, 0);
+			if (Distance < Robot->ExtDistance) PtCCtrlAw->Diffusion.Post (Message, aw_instance(), Nom, Robot->Nom, 0);
 		}
-		else PtCCtrlAw->Diffuse->Post (Message, aw_instance(), Nom, Robot->Nom, 0);
+		else PtCCtrlAw->Diffusion.Post (Message, aw_instance(), Nom, Robot->Nom, 0);
 	}
 }
 
@@ -510,6 +485,7 @@ void CCtrlAw::On_Enter (int rc)
 void CCtrlAw::On_Address (int rc)
 {
 	CBotCG* Robot=PtCCtrlAw->GetBotInst(aw_instance());
+	Robot->ConMess (0,_T("On_Address"),51,153,51,true);
 	wxString Message;
 	if (rc)
     {
@@ -526,7 +502,7 @@ void CCtrlAw::On_Address (int rc)
 		int id=Robot->DBase->Identifie (User.Name, User.Citizen);
 		if (id >= 0)
 		{
-			if (((User.Citizen==Robot->CitoModo) || (User.Citizen==Robot->CitoEmin) || (User.Privilege==Robot->CitoModo) || (User.Privilege==Robot->CitoEmin)) && Robot->DBase->GetModo(id))
+			if (Robot->IsUserModerator(User) || Robot->IsUserPublicSpeaker(User))
 			{
 				Robot->ConMess (Session,Message,51,153,51,true);
 			}
@@ -552,19 +528,19 @@ void CCtrlAw::On_Citizen_Attributes (int rc)
 
 CBotCG* CCtrlAw::GetBot (unsigned int num)
 {
-	if ( (num >= ABots.size()) || (!AwInit) ) return nullptr;
-	return ABots[num];
+	if ( (num >= Bots.size()) || (!AwInit) ) return nullptr;
+	return Bots[num];
 }
 
 //------------------------------------------------------------------------------
 
 CBotCG* CCtrlAw::GetBotInst(void* Instance)
 {
-    for (VBots::iterator it = ABots.begin(); it != ABots.end(); ++it)
+    for (auto Bot : Bots)
 	{
-		if ((*it)->GetInstance()==Instance)
+		if (Bot->GetInstance()==Instance)
 		{
-			return (*it);
+			return (Bot);
 		}
 	}
 	return nullptr;
@@ -581,22 +557,23 @@ void CCtrlAw::On_HeartBeat (wxTimerEvent& WXUNUSED(event))
 	if ((AHeure != Horloge.GetHour()) && (AHeure==23)) njour=true;
 	AHeure=Horloge.GetHour();
 	aw_wait(0);
-    for (VBots::iterator it = ABots.begin(); it != ABots.end(); ++it)
+    for (auto Bot : Bots)
 	{
-		(*it)->Update();
-		if (ShdEject) (*it)->Eject ();
-		if ((*it)->IsOnWorld()) (*it)->Ciel->MAJ ();
+		Bot->SetInstance();
+		Bot->Update();
+		if (ShdEject) Bot->Eject ();
+		if (Bot->IsOnWorld()) Bot->Ciel->MAJ ();
 		if (njour) wxLogMessage(_("A new day happen"));
-        if ((*it)->IsOnWorld() && (*it)->CGON)
+        if (Bot->IsOnWorld() && Bot->CGON)
 		{
-			while (Diffuse->Get(Message, (*it)->GetInstance(),Nom, Client, Type))
+			while (Diffusion.Get(Message, Bot->GetInstance(),Nom, Client, Type))
 			{
-				if (!Type) (*it)->Analyse (Nom, 0,0,Message,0,true,Client,0);
-				else (*it)->Mess_Bot (Nom, Type, Client);
+				if (!Type) Bot->Analyse (Nom, 0,0,Message,0,true,Client,0);
+				else Bot->Mess_Bot (Nom, Type, Client);
 			}
 		}
 	}
-	Diffuse->Clear ();
+	Diffusion.Clear ();
 	if (ShdEject) ShdEject=false;
 	if (CBotCG::Ejecte)
 	{

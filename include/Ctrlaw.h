@@ -19,18 +19,18 @@
 
 #include <wx/wxprec.h>
 #ifndef  WX_PRECOMP
-	#include <wx/wx.h>
+    #include <wx/wx.h>
 #endif
 #include <wx/vector.h>
 #include <wx/config.h>
 #include <wx/timer.h>
 
 #ifndef COMMON_DLL
-	#ifdef DLL_EXPORTS
-		#define COMMON_DLL WXEXPORT
-	#else
-		#define COMMON_DLL WXIMPORT
-	#endif
+    #ifdef DLL_EXPORTS
+        #define COMMON_DLL WXEXPORT
+    #else
+        #define COMMON_DLL WXIMPORT
+    #endif
 #endif
 
 #include "CBotCG.h"
@@ -39,41 +39,38 @@
 
 enum
 {
-	HEARTBEAT=wxID_HIGHEST
+    HEARTBEAT=wxID_HIGHEST
 };
 
 typedef enum
 {
-	CTRLAW_SERVER = 0,
-	CTRLAW_STANDALONE
+    CTRLAW_SERVER = 0,
+    CTRLAW_STANDALONE
 } CTRLAW_MODE;
 
+typedef std::vector<CBotCG*> VBots;
 
 class COMMON_DLL CCtrlAw : public wxEvtHandler
 {
     public:
-static      CCtrlAw*            Create ();
-			CBotCG*			    GetBot (unsigned int num);
-			int				    Init (bool flag, size_t NbBot=1); // On/off de la Dll
-			CBotCG*			    GetBotInst (void* Instance);
-            void				SetMode (CTRLAW_MODE Mode=CTRLAW_SERVER);
-static		void			    Kill();
+                            CCtrlAw (CDiffusion& pDiffusion);
+                            ~CCtrlAw();
+            CBotCG*			GetBot (unsigned int num);
+            int				Init (bool flag, size_t NbBot=1); // On/off de la Dll
+            CBotCG*			GetBotInst (void* Instance);
+            void			SetMode (CTRLAW_MODE Mode=CTRLAW_SERVER);
+    private:
+static      CCtrlAw*        PtCCtrlAw;
+            VBots			Bots;
+            wxConfigBase*	pConfig;
+            wxTimer*		Heart;
+            CDiffusion      Diffusion;
 
-	private:
-							    CCtrlAw ();
-							    ~CCtrlAw();
-
-static		CCtrlAw*            PtCCtrlAw;
-			VBots				ABots;
-            wxConfigBase*		pConfig;
-            wxTimer*			Heart;
-			CDiffusion*         Diffuse;
-
-			bool			    AwInit;
-			bool				ServerMode;
-			wxDateTime		    Horloge;
-			int				    AHeure;
-			bool			    ShdEject;
+            bool			AwInit;
+            bool			ServerMode;
+            wxDateTime		Horloge;
+            int				AHeure;
+            bool			ShdEject;
 
 // Evenements AW
 static		void			On_Admin_Worlds_Delete	();

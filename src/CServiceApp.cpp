@@ -133,7 +133,7 @@ void handle_signal(int sig)
  */
 void print_help(void)
 {
-	printf("\n Usage: %s [OPTIONS]\n\n", AppName);
+	printf("\n Usage: %s [OPTIONS]\n\n", AppName.mb_str());
 	printf("  Options:\n");
 	printf("   -h --help                 Print this help\n");
 	printf("   -c --conf_path path       Configuration path\n");

@@ -23,7 +23,6 @@
 #endif
 
 #include <wx/wxprec.h>
-#include <vector>
 
 #include "DBase.h"
 #include "DBColor.h"
@@ -38,7 +37,7 @@ using namespace std;
 class CBotCG : public CBot
 {
     private:
-	    CDiffusion*     Diffusion;
+	    CDiffusion      Diffusion;
 
     public:
 
@@ -49,7 +48,6 @@ class CBotCG : public CBot
         bool            CGON;
         bool            EnaCoulPerso;
         bool            EnaStyle;
-        bool            EnaTouristTChat;
         bool            ChatBride;
         int             ChatDistance;
         bool            ExtBride;
@@ -57,8 +55,6 @@ class CBotCG : public CBot
         int             ExtCoordX;
         int             ExtCoordZ;
         int				SessionReq;
-        int             CitoModo;
-        int             CitoEmin;
 
 	    bool            Kling;                 // Possibilité de Klinguer
         bool            Kloug;                 // Possibilité de Klouguer
@@ -95,7 +91,7 @@ static  unsigned int    EjectTime;
 // ----------------
 
 // Constructeur et Destructeur
-                        CBotCG	();
+                        CBotCG	(CDiffusion& pDiffusion);
                         ~CBotCG	();
 
 // Entiers
@@ -129,8 +125,6 @@ static  unsigned int    EjectTime;
         void        Eject ();
         void        TellList (int Session);
 };
-
-typedef std::vector<CBotCG*> VBots;
 
 #endif
 

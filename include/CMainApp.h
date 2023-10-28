@@ -24,6 +24,7 @@
 
 #include "CLog.h"
 #include "Ctrlaw.h"
+#include "CIRCGateway.h"
 
 //#define NB_MAX_LNG 3
 
@@ -49,10 +50,15 @@
 
 class CMainApp : public CServiceApp
 {
-	private:
+    public:
+                            CMainApp();
+    private:
 		wxFileConfig*		pConfig;
-		CCtrlAw*			CtrlAw;
+		CCtrlAw				CtrlAw;
         int					NbBot;
+		CLogManager			LogManager;
+        CDiffusion          Diffusion;
+        CIRCGateway         IRCGateway;
 	protected:
 		virtual bool		Init();
         virtual void		Exiting();

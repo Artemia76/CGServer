@@ -77,9 +77,11 @@ void CIRCGateway::Init (bool pFlag)
             Connect();
         }
         IRCHeartBeat->Start(Base_Temps, false);
+        Diffusion.Subscribe(this);
     }
     else
     {
+        Diffusion.UnSubscribe(this);
         if (On_IRC)
         {
             IRCRecoTimer->Stop();
@@ -103,6 +105,7 @@ void CIRCGateway::Charge ()
     IRCPassWord=PassPriv->Decode(s);
     pConfig->Read( S + _T("/IRCPort") ,&IRCPort, 5525);
     pConfig->Read( S + _T("/IRCLogin") ,&IRCLogin, _T("ChatGlobal"));
+    pConfig->Read( S + _T("/IRCChannel") ,&IRCChannel, _T("#lobby"));
     pConfig->Read( S + _T("/IRCAutoConnect") ,&IRCConAuto, false);
     pConfig->Read( S + _T("/IRCDelai"), &IRCRecoDelay, 15);
     pConfig->Read( S + _T("/IRCEssais"), &IRCRecoRetry, 3);
@@ -123,6 +126,7 @@ void CIRCGateway::Sauve ()
     pConfig->Write( S + _T("/IRCPassWord") , PassPriv->Code(IRCPassWord));
     pConfig->Write( S + _T("/IRCPort") , IRCPort);
     pConfig->Write( S + _T("/IRCLogin") , IRCLogin);
+    pConfig->Write( S + _T("/IRCChannel") , IRCChannel);
     pConfig->Write( S + _T("/IRCAutoConnect") , IRCConAuto);
     pConfig->Write( S + _T("/IRCDelai") , IRCRecoDelay);
     pConfig->Write( S + _T("/IRCEssais") , IRCRecoRetry);
@@ -239,17 +243,18 @@ bool CIRCGateway::IsOnIRC ()
 {
     return On_IRC;
 }
+				// Port du serveur Xelag
 
 //------------------------------------------------------------------------------
 // Methode de connection
 
 void CIRCGateway::Connect()
 {
-    if ((!ConEC) && (!DemCon) && (!On_IRC))
-    {
-        DemCon=true;
-        FirstCon=true;
-    }
+	if ((!ConEC) && (!DemCon) && (!On_IRC))
+	{
+		DemCon=true;
+		FirstCon=true;
+	}
 }
 
 //----------------------------------------------SockXlg--------------------------------
@@ -361,11 +366,33 @@ void CIRCGateway::Update()
             Message.StartsWith(_T("PING "), &Tampon);
             EnvoiMess(_T("PONG ") + Tampon);
         }
-        if (Message.StartsWith(_T(":")+ IRCLogin))
+        else if (Message.StartsWith(_T(":")+ IRCLogin))
         {
-            EnvoiMess(_T("JOIN #lobby"));
+            EnvoiMess(_T("JOIN ") + IRCChannel );
+        }
+        else if (Message.Contains(_T("PRIVMSG")))
+        {
+            wxString Nick, Msg;
+            Message = Message.AfterFirst(':');
+            Nick = Message.BeforeFirst('!');
+            Msg = Message.AfterFirst(':');
+            Diffusion.Post(Msg,this,Nick,IRCChannel,0);
         }
     }
     if (DemCon && (!On_IRC) && (!ConEC)) IRCConnect(true);
     if (IRCRecoTimer->IsRunning() && (!ModeReco)) IRCRecoTimer->Stop();
+}
+
+void CIRCGateway::OnReceiveMessage (
+                    const wxString& pMessage,
+                    const void* pInstance,
+                    const wxString& pName,
+                    const wxString& pClient,
+                    int pType)
+{
+    wxLogMessage(_("IRC Gateway : Receive Global message : ") + pMessage);
+    if (On_IRC && (pInstance!=this))
+    {
+        EnvoiMess (_T("PRIVMSG ") + IRCChannel + _T(" : From (") + pName + _T(" on ") + pClient + _T("): ") + pMessage,pType,pName);
+    }
 }

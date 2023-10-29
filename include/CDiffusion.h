@@ -25,30 +25,39 @@
 #include <wx/wxprec.h>
 #include <vector>
 
-class CPost
+class CDiffusion;
+
+class CDiffusionEventHandler
 {
-    public:
-                            CPost (wxString& Mess, void* Inst, wxString& Name, wxString& Clien, int Typ=0);
-        wxString			Message;
-        void*				Instance;
-        wxString			Nom,Client;
-        int					Type;
+    friend CDiffusion;
+protected:
+virtual void    OnReceiveMessage(
+                    const wxString& pMessage,
+                    const void* pInstance,
+                    const wxString& pName,
+                    const wxString& pClient,
+                    int pType)=0;
+
 };
 
-typedef std::vector<CPost>  VPosts;
+typedef std::vector<CDiffusionEventHandler*> Subscribers;
 
 class CDiffusion
 {
     private:
-        VPosts              Stack;//Pile de récèption des messages
-        void*				Client;
-        size_t				Compteur;
+        Subscribers          m_Subscribers;
+
     public:
-                            CDiffusion ();
-                            ~CDiffusion ();
-        void				Post (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int Typ=0); // Poste un message
-        bool				Get (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int& Typ); // Récupere les message de diffusion (renvoi true si dernier message)
-        void				Clear ();
+                            CDiffusion ();//Constructeur 
+                            ~CDiffusion ();//Destructeur
+        void				Post (
+                                const wxString& pMessage,
+                                const void* pInstance,
+                                const wxString& pName,
+                                const wxString& pClient,
+                                int pType=0); // Poste un message
+        void                Subscribe(CDiffusionEventHandler* pCallBack);
+        void                UnSubscribe(CDiffusionEventHandler* pCallBack);
 };
 
 #endif

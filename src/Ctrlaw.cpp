@@ -564,16 +564,7 @@ void CCtrlAw::On_HeartBeat (wxTimerEvent& WXUNUSED(event))
 		if (ShdEject) Bot->Eject ();
 		if (Bot->IsOnWorld()) Bot->Ciel->MAJ ();
 		if (njour) wxLogMessage(_("A new day happen"));
-        if (Bot->IsOnWorld() && Bot->CGON)
-		{
-			while (Diffusion.Get(Message, Bot->GetInstance(),Nom, Client, Type))
-			{
-				if (!Type) Bot->Analyse (Nom, 0,0,Message,0,true,Client,0);
-				else Bot->Mess_Bot (Nom, Type, Client);
-			}
-		}
 	}
-	Diffusion.Clear ();
 	if (ShdEject) ShdEject=false;
 	if (CBotCG::Ejecte)
 	{

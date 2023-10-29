@@ -34,10 +34,10 @@
 
 using namespace std;
 
-class CBotCG : public CBot
+class CBotCG : public CBot, CDiffusionEventHandler
 {
     private:
-	    CDiffusion      Diffusion;
+	    CDiffusion&     Diffusion;
 
     public:
 
@@ -124,6 +124,14 @@ static  unsigned int    EjectTime;
         int         Distance (int Session1, int Session2, bool Ext=false);
         void        Eject ();
         void        TellList (int Session);
+
+    protected:
+        void        OnReceiveMessage(
+                        const wxString& pMessage,
+                        const void* pInstance,
+                        const wxString& pName,
+                        const wxString& pClient,
+                        int pType);
 };
 
 #endif

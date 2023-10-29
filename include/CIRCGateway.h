@@ -33,14 +33,14 @@ enum
 	IRC_HB
 };
 
-class CIRCGateway : public wxEvtHandler
+class CIRCGateway : public wxEvtHandler, CDiffusionEventHandler
 {
 	private:
 		wxSocketClient*	SockIRC;
 		wxTimer*		IRCRecoTimer;
 		wxTimer*		IRCHeartBeat;
 		CPassPriv*		PassPriv;
-        CDiffusion      Diffusion;
+        CDiffusion&     Diffusion;
 
 		bool			ConEC;
 		bool			DemCon;
@@ -60,15 +60,16 @@ class CIRCGateway : public wxEvtHandler
 		bool			ModeReco;
 
 		int				IRCCompt;
-		int				IRCPort;				// Port du serveur Xelag
+		int				IRCPort;
 		int				IRCRecoDelay;
 		int				IRCRecoRetry;
 		int				IRCRecoCnt;
 		int				IRCRetente;
 
-		wxString		IRCHost;				// Adresse du serveur Xelag
-		wxString		IRCLogin;			// Login du compte xelag
-		wxString		IRCPassWord;			// Mdp du compte Xelag
+		wxString		IRCHost;
+		wxString		IRCLogin;
+		wxString		IRCPassWord;
+        wxString        IRCChannel;
 
 						CIRCGateway	(CDiffusion& pDiffusion);
 						~CIRCGateway ();
@@ -91,6 +92,12 @@ class CIRCGateway : public wxEvtHandler
 		void			OnIRCRecoEvent	(wxTimerEvent  & event);
 		void			OnIRCHeartBeat   (wxTimerEvent& event);
 		void			OnIRCEvent	(wxSocketEvent & event);
+        void            OnReceiveMessage (
+                            const wxString& pMessage,
+                            const void* pInstance,
+                            const wxString& pName,
+                            const wxString& pClient,
+                            int pType);
 		wxDECLARE_EVENT_TABLE();
 };
 

@@ -64,7 +64,7 @@ static      CCtrlAw*        PtCCtrlAw;
             VBots			Bots;
             wxConfigBase*	pConfig;
             wxTimer*		Heart;
-            CDiffusion      Diffusion;
+            CDiffusion&     Diffusion;
 
             bool			AwInit;
             bool			ServerMode;

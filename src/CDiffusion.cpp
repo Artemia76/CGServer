@@ -17,59 +17,48 @@
 // *****************************************************************************
 
 #include "CDiffusion.h"
-#include <wx/arrimpl.cpp>
-
-CPost::CPost (wxString& Mess, void* Inst, wxString& Name, wxString& Clien, int Typ)
-{
-    Message=Mess;
-    Instance=Inst;
-    Nom=Name;
-    Client=Clien;
-    Type=Typ;
-}
+#include <algorithm>
 
 // Classe de diffusion
 
 CDiffusion::CDiffusion ()
 {
-    Client=0;
-    Compteur=0;
+
 }
 
 CDiffusion::~CDiffusion ()
 {
+
 }
 
-void CDiffusion::Post (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int Typ)
+void CDiffusion::Post (const wxString& pMessage, const void* pInstance, const wxString& pName, const wxString& pClient, int pType)
 {
-    Stack.push_back (CPost(Message, Instance, Name, Clien, Typ));
-}
-
-bool CDiffusion::Get (wxString& Message, void* Instance, wxString& Name, wxString& Clien, int& Typ)
-{
-    Message="";
-    if (Client!=Instance)
+    wxLogMessage(wxString::Format(_T("Diffusion Subscriber num: %d"),m_Subscribers.size()));
+    for (auto Subscriber : m_Subscribers)
     {
-        Client=Instance;
-        Compteur=0;
+        if (Subscriber != nullptr)
+        {
+            wxLogMessage(_("Diffusion Post : ") + pMessage);
+            Subscriber->OnReceiveMessage(pMessage,pInstance,pName,pClient,pType);
+        }
     }
-    if (Compteur >= Stack.size()) return false;
-    while ((Stack[Compteur].Instance==Client) && (Compteur < Stack.size()))
-    {
-        Compteur ++;
-        if (Compteur >= Stack.size()) return false;
-    }
-    Message = Stack[Compteur].Message;
-    Name=Stack[Compteur].Nom;
-    Clien=Stack[Compteur].Client;
-    Typ=Stack[Compteur].Type;
-    Compteur++;
-    return true;
 }
 
-void CDiffusion::Clear ()
+void CDiffusion::Subscribe (CDiffusionEventHandler* pCallBack)
 {
-    Stack.clear ();
-    Client=0;
-    Compteur=0;
+    for (auto Subscriber : m_Subscribers)
+    {
+        if (Subscriber == pCallBack) return;
+    }
+    m_Subscribers.push_back(pCallBack);
+}
+
+void CDiffusion::UnSubscribe (CDiffusionEventHandler* pCallBack)
+{
+    Subscribers::iterator it;
+    it = std::find(m_Subscribers.begin(), m_Subscribers.end(),pCallBack);
+    if (it!=m_Subscribers.end())
+    {
+        m_Subscribers.erase(it);
+    }
 }

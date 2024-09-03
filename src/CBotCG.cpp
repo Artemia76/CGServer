@@ -951,6 +951,11 @@ int CBotCG::Mess_Bot (wxString Name, int code, wxString Client, int Session)
     int R=255,V=100,B=100,rc=0, Dist=0;
     wxString Message=Name;
     switch (code)
+#include <wx/wxprec.h>
+
+#ifndef  WX_PRECOMP
+	#include <wx/wx.h>
+#endif
     {
         case 1	: //Message d'anonnce d'arrivée
             if (!EnaAnnArr) return 0;

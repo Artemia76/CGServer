@@ -27,14 +27,6 @@
 
 #include <Aw.h>
 
-#ifndef COMMON_DLL
-	#ifdef DLL_EXPORTS
-		#define COMMON_DLL WXEXPORT
-	#else
-		#define COMMON_DLL WXIMPORT
-	#endif
-#endif
-
 #include "Cpasspriv.h"
 #include "CUser.h"
 
@@ -43,7 +35,7 @@ enum
 	CG_RECO=wxID_HIGHEST
 };
 
-class COMMON_DLL CBot : public wxEvtHandler
+class CBot : public wxEvtHandler
 {
     public:
 

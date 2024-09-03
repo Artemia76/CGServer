@@ -25,14 +25,6 @@
 #include <wx/config.h>
 #include <wx/timer.h>
 
-#ifndef COMMON_DLL
-    #ifdef DLL_EXPORTS
-        #define COMMON_DLL WXEXPORT
-    #else
-        #define COMMON_DLL WXIMPORT
-    #endif
-#endif
-
 #include "CBotCG.h"
 #include "CDiffusion.h"
 #include "global.h"
@@ -50,7 +42,7 @@ typedef enum
 
 typedef std::vector<CBotCG*> VBots;
 
-class COMMON_DLL CCtrlAw : public wxEvtHandler
+class CCtrlAw : public wxEvtHandler
 {
     public:
                             CCtrlAw (CDiffusion& pDiffusion);

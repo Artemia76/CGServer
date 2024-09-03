@@ -11,10 +11,12 @@ ChatGlobal server for Activeworlds Universe
     1. UBUNTU, MINT
 
         On ubuntu you can enter this command line to install needed dependencies:
+
             ```
             sudo apt-get install build-essential libwxbase3.0-dev
             ```
         Install AW SDK lib in your local lib32 folder, for exemple on ubuntu/mint :
+
             ```
             ls /usr/local/lib/i386-linux-gnu
             >libaw_sdk.51.so.93
@@ -23,6 +25,7 @@ ChatGlobal server for Activeworlds Universe
             >libaw_sdk.51.so  libaw_sdk.51.so.93
             ```
         Install AW SDK Include file Aw.h :
+
             ```
             ls /usr/local/include
             >Aw.h
@@ -31,6 +34,7 @@ ChatGlobal server for Activeworlds Universe
     1. Final build:
 
         on git root :
+        
             ```
             mkdir build
             cd build

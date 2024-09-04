@@ -9,7 +9,12 @@ ChatGlobal server for Activeworlds Universe
 
 1. Build on Linux
     1. UBUNTU, MINT
+        On ubuntu enable support for 32 bit architecture :
 
+            sudo dpkg --add-architecture i386
+            sudo apt update
+            sudo apt-get dist-upgrade
+            
         On ubuntu you can enter this command line to install needed dependencies:
 
             sudo apt-get install build-essential libwxbase3.0-dev
